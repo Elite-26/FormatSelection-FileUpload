@@ -5,6 +5,30 @@ let thumbnailsPerPage = 5; // Fixed to show exactly 5 files per page
 let draggedElement = null;
 let selectedFormat = 'pdf'; // Default selected format
 
+// Format-specific file type mappings
+const formatFileTypes = {
+    'pdf': {
+        accept: '.pdf',
+        mimeTypes: ['application/pdf'],
+        label: 'PDF files'
+    },
+    'jpg': {
+        accept: '.jpg,.jpeg',
+        mimeTypes: ['image/jpeg', 'image/jpg'],
+        label: 'JPG/JPEG files'
+    },
+    'png': {
+        accept: '.png',
+        mimeTypes: ['image/png'],
+        label: 'PNG files'
+    },
+    'webp': {
+        accept: '.webp',
+        mimeTypes: ['image/webp'],
+        label: 'WebP files'
+    }
+};
+
 // DOM elements
 const fileInput = document.getElementById('fileInput');
 const dropContainer = document.querySelector('.drop-container');
@@ -22,7 +46,68 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeFormatSelection();
     updateButtonStates();
     updateNavigationButtons();
+    updateFileInputAccept();
 });
+
+// Toaster notification system
+function showToaster(message, type = 'warning') {
+    // Remove existing toasters
+    const existingToasters = document.querySelectorAll('.toaster');
+    existingToasters.forEach(toaster => toaster.remove());
+    
+    // Create toaster element
+    const toaster = document.createElement('div');
+    toaster.className = `toaster toaster-${type}`;
+    toaster.innerHTML = `
+        <div class="toaster-content">
+            <span class="toaster-message">${message}</span>
+            <button class="toaster-close">×</button>
+        </div>
+    `;
+    
+    // Add to body
+    document.body.appendChild(toaster);
+    
+    // Show toaster with animation
+    setTimeout(() => {
+        toaster.classList.add('show');
+    }, 100);
+    
+    // Auto-hide after 5 seconds
+    const autoHide = setTimeout(() => {
+        hideToaster(toaster);
+    }, 5000);
+    
+    // Close button functionality
+    const closeBtn = toaster.querySelector('.toaster-close');
+    closeBtn.addEventListener('click', () => {
+        clearTimeout(autoHide);
+        hideToaster(toaster);
+    });
+}
+
+function hideToaster(toaster) {
+    toaster.classList.remove('show');
+    setTimeout(() => {
+        if (toaster.parentNode) {
+            toaster.parentNode.removeChild(toaster);
+        }
+    }, 300);
+}
+
+// Update file input accept attribute based on selected format
+function updateFileInputAccept() {
+    const formatConfig = formatFileTypes[selectedFormat];
+    if (formatConfig) {
+        fileInput.accept = formatConfig.accept;
+        
+        // Update the accepted formats text
+        const acceptedFormatsElement = document.getElementById('acceptedFormats');
+        if (acceptedFormatsElement) {
+            acceptedFormatsElement.textContent = `${formatConfig.label} only`;
+        }
+    }
+}
 
 // Format Selection Functionality
 function initializeFormatSelection() {
@@ -36,6 +121,9 @@ function initializeFormatSelection() {
             
             // Update selected format
             selectedFormat = this.dataset.format;
+            
+            // Update file input accept attribute
+            updateFileInputAccept();
             
             console.log('Selected format:', selectedFormat);
         });
@@ -113,13 +201,38 @@ function handleDrop(event) {
 }
 
 function processFiles(files) {
-    // Filter files by accepted types
-    const acceptedTypes = [
-        'image/heic', 'image/heif', 'image/jpeg', 'image/jpg', 
-        'video/quicktime', 'video/mp4', 'application/pdf', 
-        'image/png', 'image/tiff', 'image/webp'
-    ];
-    const validFiles = files.filter(file => acceptedTypes.includes(file.type));
+    const formatConfig = formatFileTypes[selectedFormat];
+    if (!formatConfig) {
+        showToaster('Invalid format selected', 'error');
+        return;
+    }
+    
+    // Filter files by selected format
+    const validFiles = [];
+    const invalidFiles = [];
+    
+    files.forEach(file => {
+        if (formatConfig.mimeTypes.includes(file.type)) {
+            validFiles.push(file);
+        } else {
+            invalidFiles.push(file);
+        }
+    });
+    
+    // Show warning for invalid files
+    if (invalidFiles.length > 0) {
+        const invalidFileNames = invalidFiles.map(file => file.name).join(', ');
+        showToaster(`Invalid file format(s): ${invalidFileNames}. Only ${formatConfig.label} are allowed for ${selectedFormat.toUpperCase()} conversion.`, 'warning');
+    }
+    
+    // Show success message for valid files
+    if (validFiles.length > 0) {
+        if (validFiles.length === 1) {
+            showToaster(`${validFiles[0].name} uploaded successfully for ${selectedFormat.toUpperCase()} conversion.`, 'success');
+        } else {
+            showToaster(`${validFiles.length} files uploaded successfully for ${selectedFormat.toUpperCase()} conversion.`, 'success');
+        }
+    }
     
     if (validFiles.length === 0) {
         return;
