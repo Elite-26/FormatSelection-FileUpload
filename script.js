@@ -3,6 +3,7 @@ let uploadedFiles = [];
 let currentPage = 0;
 let thumbnailsPerPage = 5; // Fixed to show exactly 5 files per page
 let draggedElement = null;
+let selectedFormat = 'pdf'; // Default selected format
 
 // DOM elements
 const fileInput = document.getElementById('fileInput');
@@ -12,14 +13,34 @@ const clearBtn = document.querySelector('.clear-btn');
 const downloadAllBtn = document.querySelector('.download-all-btn');
 const prevBtn = document.querySelector('.prev-btn');
 const nextBtn = document.querySelector('.next-btn');
+const formatButtons = document.querySelectorAll('.format-btn');
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
     initializeFileUpload();
     initializeButtons();
+    initializeFormatSelection();
     updateButtonStates();
     updateNavigationButtons();
 });
+
+// Format Selection Functionality
+function initializeFormatSelection() {
+    formatButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            formatButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Update selected format
+            selectedFormat = this.dataset.format;
+            
+            console.log('Selected format:', selectedFormat);
+        });
+    });
+}
 
 // Button Functionality
 function initializeButtons() {
@@ -155,7 +176,7 @@ function downloadAllFiles() {
         setTimeout(() => {
             const originalName = file.name;
             const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.'));
-            const convertedName = `${nameWithoutExt}_converted.${file.name.split('.').pop()}`;
+            const convertedName = `${nameWithoutExt}_converted.${selectedFormat}`;
             downloadFile(convertedName);
         }, index * 500); // Stagger downloads
     });
@@ -334,7 +355,7 @@ function removeFile(index) {
 function downloadSingleFile(file) {
     const originalName = file.name;
     const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.'));
-    const convertedName = `${nameWithoutExt}_converted.${file.name.split('.').pop()}`;
+    const convertedName = `${nameWithoutExt}_converted.${selectedFormat}`;
     downloadFile(convertedName);
 }
 
