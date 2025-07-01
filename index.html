@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Converter</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <main>
+            <!-- File Upload Area -->
+            <div class="upload-area">
+                <!-- Top Buttons -->
+                <div class="upload-buttons">
+                    <button class="upload-btn">
+                        UPLOAD FILES
+                    </button>
+                    <button class="clear-btn">
+                        CLEAR QUEUE
+                    </button>
+                </div>
+
+                <!-- Drop Zone -->
+                <div class="drop-zone">
+                    <button class="nav-btn prev-btn">‹</button>
+                    <div class="drop-container">
+                        <h3>Drop Your Files Here</h3>
+                        <input type="file" id="fileInput" multiple accept="image/*,.pdf" class="file-input">
+                    </div>
+                    <button class="nav-btn next-btn">›</button>
+                </div>
+
+                <!-- Download Button -->
+                <div class="download-section">
+                    <button class="download-all-btn" disabled>
+                        DOWNLOAD ALL
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Area -->
+            <div class="results-area" style="display: none;">
+                <h3>Converted Files</h3>
+                <div class="results-list"></div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
